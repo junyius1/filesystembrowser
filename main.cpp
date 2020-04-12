@@ -140,21 +140,38 @@ public:
     }
 };
 
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+//{
+//    QApplication app(argc, argv);
+
+//    QQmlApplicationEngine engine;
+//    qmlRegisterUncreatableType<DisplayFileSystemModel>("io.qt.examples.quick.controls.filesystembrowser", 1, 0,
+//                                                       "FileSystemModel", "Cannot create a FileSystemModel instance.");
+//    QFileSystemModel *fsm = new DisplayFileSystemModel(&engine);
+//    fsm->setRootPath(QDir::homePath());
+//    fsm->setResolveSymlinks(true);
+//    engine.rootContext()->setContextProperty("fileSystemModel", fsm);
+//    engine.rootContext()->setContextProperty("rootPathIndex", fsm->index(fsm->rootPath()));
+//    engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
+//    if (engine.rootObjects().isEmpty())
+//        return -1;
+
+//    return app.exec();
+//}
+#include <QQuickView>
+#include <QDirModel>
+
+int main(int argc, char ** argv)
 {
     QApplication app(argc, argv);
 
-    QQmlApplicationEngine engine;
-    qmlRegisterUncreatableType<DisplayFileSystemModel>("io.qt.examples.quick.controls.filesystembrowser", 1, 0,
-                                                       "FileSystemModel", "Cannot create a FileSystemModel instance.");
-    QFileSystemModel *fsm = new DisplayFileSystemModel(&engine);
-    fsm->setRootPath(QDir::homePath());
-    fsm->setResolveSymlinks(true);
-    engine.rootContext()->setContextProperty("fileSystemModel", fsm);
-    engine.rootContext()->setContextProperty("rootPathIndex", fsm->index(fsm->rootPath()));
-    engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
-    if (engine.rootObjects().isEmpty())
-        return -1;
+    QQuickView view;
+
+    QDirModel model;
+    view.rootContext()->setContextProperty("dirModel", &model);
+
+    view.setSource(QUrl(QStringLiteral("qrc:///main.qml")));
+    view.show();
 
     return app.exec();
 }
