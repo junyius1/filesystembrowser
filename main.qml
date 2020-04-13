@@ -131,18 +131,29 @@ ListView {
     height: 400
 
     model: DelegateModel {
-        model: dirModel
+        property var testIndex
+        model: fileSystemModel
+        rootIndex:{
+            view.model.testIndex = rootPathIndex
+            console.log("set rootIndex==",view.model.testIndex)
+            return rootPathIndex
+        }
+        onRootIndexChanged:{
+            view.model.rootIndex =view.model.testIndex
+        }
 
         delegate: Rectangle {
+
             width: 200; height: 25
 //            Text { text: filePath }
             Text{text: fileName}
-
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    if (model.hasModelChildren)
+                    if (model.hasModelChildren){
+                        view.model.testIndex=view.model.modelIndex(index)
                         view.model.rootIndex = view.model.modelIndex(index)
+                    }
                 }
             }
         }

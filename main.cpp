@@ -55,6 +55,7 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDirModel>
 
 static inline QString permissionString(const QFileInfo &fi)
 {
@@ -101,8 +102,16 @@ class DisplayFileSystemModel : public QFileSystemModel {
     Q_OBJECT
 public:
     explicit DisplayFileSystemModel(QObject *parent = nullptr)
-        : QFileSystemModel(parent) {}
+        : QFileSystemModel(parent) {
 
+    }
+
+public Q_SLOTS:
+    void onRootPathChanged(const QString &newPath)
+    {
+        qDebug()<< "=====" << "onRootPathChanged==="<<newPath;
+    }
+public:
     enum Roles  {
         SizeRole = Qt::UserRole + 4,
         DisplayableFilePermissionsRole = Qt::UserRole + 5,
@@ -140,6 +149,36 @@ public:
     }
 };
 
+class DisplayDirModel : public QDirModel {
+    Q_OBJECT
+public:
+    explicit DisplayDirModel(QObject *parent = nullptr)
+        : QDirModel(parent) {}
+
+    enum Roles  {
+        SizeRole = Qt::UserRole + 4,
+        DisplayableFilePermissionsRole = Qt::UserRole + 5,
+        LastModifiedRole = Qt::UserRole + 6,
+        UrlStringRole = Qt::UserRole + 7
+    };
+    Q_ENUM(Roles)
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
+    {
+
+        return QDirModel::data(index, role);
+    }
+
+    QHash<int,QByteArray> roleNames() const override
+    {
+         QHash<int, QByteArray> result = QDirModel::roleNames();
+//         result.insert(SizeRole, QByteArrayLiteral("size"));
+//         result.insert(DisplayableFilePermissionsRole, QByteArrayLiteral("displayableFilePermissions"));
+//         result.insert(LastModifiedRole, QByteArrayLiteral("lastModified"));
+         return result;
+    }
+};
+
 //int main(int argc, char *argv[])
 //{
 //    QApplication app(argc, argv);
@@ -167,8 +206,19 @@ int main(int argc, char ** argv)
 
     QQuickView view;
 
-    QDirModel model;
-    view.rootContext()->setContextProperty("dirModel", &model);
+//    QDirModel model;
+//    view.rootContext()->setContextProperty("dirModel", &model);
+    QFileSystemModel *fsm = new DisplayFileSystemModel(&view);
+    DisplayDirModel * dm = new DisplayDirModel(&view);
+//    QFileSystemModel *fsm = new QFileSystemModel(&view);
+     QObject::connect(fsm, SIGNAL(rootPathChanged(const QString)), fsm,
+            SLOT(onRootPathChanged(const QString)));
+    qDebug() << "test========" << QDir::homePath();
+    QModelIndex lIndex = fsm->setRootPath(QDir::homePath());
+    qDebug() << "test22========" << fsm->rootPath();
+//    fsm->setResolveSymlinks(true);
+    view.rootContext()->setContextProperty("rootPathIndex", lIndex);
+    view.rootContext()->setContextProperty("fileSystemModel", fsm);
 
     view.setSource(QUrl(QStringLiteral("qrc:///main.qml")));
     view.show();
